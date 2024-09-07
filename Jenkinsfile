@@ -63,7 +63,7 @@ pipeline {
 
     post {
         always {
-            mail to: 'your-email@example.com',
+            mail to: 'shadankhan108@gmail.com',
                  subject: "Pipeline Status: ${currentBuild.currentResult}",
                  body: "The pipeline finished with status: ${currentBuild.currentResult}. Check the Jenkins logs for details."
         }
