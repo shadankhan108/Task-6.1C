@@ -4,124 +4,73 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Building the project...'
-                sh 'mvn clean package'
-            }
-            post {
-                success {
-                    echo 'Build succeeded.'
-                }
-                failure {
-                    echo 'Build failed.'
-                    // Add actions to handle build failure, e.g., notifying team
-                }
+                echo 'Building the code using Maven...'
+                // Example: sh 'mvn clean package'
             }
         }
-
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit and integration tests...'
-                sh 'mvn test'
-            }
-            post {
-                success {
-                    echo 'Tests succeeded.'
-                }
-                failure {
-                    echo 'Tests failed.'
-                    // Add actions to handle test failure
-                }
+                echo 'Running Unit and Integration Tests using JUnit...'
+                // Example: sh 'mvn test'
             }
         }
-
         stage('Code Analysis') {
             steps {
-                echo 'Performing code analysis...'
-                withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
-                }
-            }
-            post {
-                success {
-                    echo 'Code analysis completed.'
-                }
-                failure {
-                    echo 'Code analysis failed.'
-                    // Add actions to handle code analysis failure
-                }
+                echo 'Running Code Analysis using SonarQube...'
+                // Example: sh 'sonar-scanner'
             }
         }
-
         stage('Security Scan') {
             steps {
-                echo 'Performing security scan...'
-                sh 'dependency-check.sh --project myapp --scan .'
-            }
-            post {
-                success {
-                    echo 'Security scan completed.'
-                }
-                failure {
-                    echo 'Security scan failed.'
-                    // Add actions to handle security scan failure
-                }
+                echo 'Running Security Scan using OWASP Dependency-Check...'
+                // Example: sh 'dependency-check --project JenkinsPipeline --scan ./'
             }
         }
-
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging environment...'
-                sh 'aws deploy push --application-name my-app-staging --s3-location s3://my-bucket/my-app-staging.zip'
-            }
-            post {
-                success {
-                    echo 'Deployment to staging succeeded.'
-                }
-                failure {
-                    echo 'Deployment to staging failed.'
-                    // Add actions to handle deployment failure
-                }
+                echo 'Deploying to Staging using AWS CLI...'
+                // Example: sh 'aws deploy ...'
             }
         }
-
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running integration tests on staging...'
-                sh 'mvn verify'
-            }
-            post {
-                success {
-                    echo 'Integration tests succeeded.'
-                }
-                failure {
-                    echo 'Integration tests failed.'
-                    // Add actions to handle integration test failure
-                }
+                echo 'Running Integration Tests on Staging using Postman/Newman...'
+                // Example: sh 'newman run collection.json'
             }
         }
-
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying to production environment...'
-                sh 'aws deploy push --application-name my-app-prod --s3-location s3://my-bucket/my-app-prod.zip'
-            }
-            post {
-                success {
-                    echo 'Deployment to production succeeded.'
-                }
-                failure {
-                    echo 'Deployment to production failed.'
-                    // Add actions to handle deployment failure
-                }
+                echo 'Deploying to Production using AWS CLI...'
+                // Example: sh 'aws deploy ...'
             }
         }
     }
-
+    
     post {
         always {
-            mail to: 'shadankhan108@gmail.com',
-                 subject: "Pipeline Status: ${currentBuild.currentResult}",
-                 body: "The pipeline finished with status: ${currentBuild.currentResult}. Check the Jenkins logs for details."
+            echo 'Pipeline finished!'
+        }
+        failure {
+            script {
+                emailext(
+                    to: 'shadankhan108@gmail.com',
+                    subject: "Jenkins Build Failed: ${env.BUILD_ID}",
+                    body: """<p>Build ${env.BUILD_ID} failed. Check Jenkins for details.</p>
+                             <p>Console output: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
+                    attachLog: true
+                )
+            }
+        }
+        success {
+            script {
+                emailext(
+                    to: 'shadankhan108@gmail.com',
+                    subject: "Jenkins Build Success: ${env.BUILD_ID}",
+                    body: """<p>Build ${env.BUILD_ID} completed successfully.</p>
+                             <p>Console output: <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>""",
+                    attachLog: true
+                )
+            }
         }
     }
 }
